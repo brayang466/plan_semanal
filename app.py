@@ -1,7 +1,10 @@
 """Plan semanal TIC.
 
-Arranque: python app.py
+Arranque local: python app.py
 Luego abrir http://127.0.0.1:5050
+
+En el servidor: python app.py --servidor
+Abre http://192.168.20.205:5099
 """
 
 from __future__ import annotations
@@ -959,15 +962,21 @@ def main():
     if "--reimport" in sys.argv and os.path.exists(DB_PATH):
         os.remove(DB_PATH)
     print(init_db())
-    port = int(os.environ.get("PORT", "5050"))
-    url = f"http://127.0.0.1:{port}"
+    if "--servidor" in sys.argv:
+        host = "0.0.0.0"
+        port = 5099
+        url = "http://192.168.20.205:5099"
+    else:
+        host = "127.0.0.1"
+        port = int(os.environ.get("PORT", "5050"))
+        url = f"http://127.0.0.1:{port}"
     print(f"Plan semanal listo en {url}")
     if "--no-browser" not in sys.argv:
         threading.Thread(
             target=lambda: (time.sleep(1.2), webbrowser.open(url)),
             daemon=True,
         ).start()
-    app.run(host="127.0.0.1", port=port, debug=False, threaded=True)
+    app.run(host=host, port=port, debug=False, threaded=True)
 
 
 if __name__ == "__main__":

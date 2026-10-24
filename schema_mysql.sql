@@ -2,17 +2,30 @@
 -- Script completo para MySQL Workbench 8.
 -- Crea la base plan_semanal y carga semanas, focos, tareas y personal de 2026.
 -- En Workbench: File > Open SQL Script y pulsar el rayo (Execute).
--- Reemplaza la base plan_semanal si ya existe en ese servidor.
+--
+-- Si aparece el error 3681 (schema directory '.\plan_semanal\' was found):
+--   1. SHOW VARIABLES LIKE 'datadir';
+--   2. Detener el servicio MySQL.
+--   3. Renombrar o borrar la carpeta plan_semanal que está dentro de ese datadir.
+--   4. Iniciar MySQL y volver a ejecutar este script.
+-- No uses DROP DATABASE: con esa carpeta huérfana MySQL rechaza el DROP.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP DATABASE IF EXISTS plan_semanal;
-CREATE DATABASE plan_semanal
+CREATE DATABASE IF NOT EXISTS plan_semanal
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 USE plan_semanal;
+
+DROP VIEW IF EXISTS v_plan;
+DROP TABLE IF EXISTS tarea_responsable;
+DROP TABLE IF EXISTS tareas;
+DROP TABLE IF EXISTS focos;
+DROP TABLE IF EXISTS meta;
+DROP TABLE IF EXISTS semanas;
+DROP TABLE IF EXISTS personal;
 
 -- Personas del equipo. "Todos" y "Desarrollo" se conservan
 -- como aparecen en el Excel cuando la tarea no es de una sola persona.
