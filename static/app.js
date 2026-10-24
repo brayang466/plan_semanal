@@ -166,7 +166,8 @@ function renderWeeks() {
       `${s.realizadas}/${s.total}`,
     ].filter(Boolean).join(" · ");
     const current = state.semana && state.semana.id === s.id;
-    return `<button class="week" type="button" data-week="${s.id}" ${current ? 'aria-current="true"' : ""}>
+    const live = esHoy(s) ? " live" : "";
+    return `<button class="week${live}" type="button" data-week="${s.id}" ${current ? 'aria-current="true"' : ""}>
       <span class="num">${s.numero}</span>
       <span>
         <strong>${esc(fmtRango(s.fecha_inicio, s.fecha_fin, false))}</strong>
@@ -178,7 +179,10 @@ function renderWeeks() {
   const huecos = state.huecos.length
     ? `<p class="huecos">En el Excel no vienen las semanas ${esc(rangos(state.huecos))}.</p>`
     : "";
+  const primera = !nav.dataset.ready;
   nav.innerHTML = items + huecos;
+  if (primera) nav.dataset.ready = "1";
+  nav.classList.toggle("arrive", primera);
   nav.scrollTop = y;
 }
 
@@ -676,7 +680,36 @@ async function boot(preferida) {
   await loadWeek(id);
 }
 
+function pulso(event) {
+  if (event.target.closest("input, select, textarea")) return;
+  const host = event.target.closest("button, .foco, .stat, .carga li, .chip, .person-row, .link");
+  if (host) {
+    const rect = host.getBoundingClientRect();
+    const dot = document.createElement("span");
+    dot.className = "ripple";
+    const size = Math.max(rect.width, rect.height) * 1.2;
+    dot.style.width = `${size}px`;
+    dot.style.height = `${size}px`;
+    dot.style.left = `${event.clientX - rect.left - size / 2}px`;
+    dot.style.top = `${event.clientY - rect.top - size / 2}px`;
+    host.appendChild(dot);
+    setTimeout(() => dot.remove(), 650);
+    host.classList.remove("tap");
+    void host.offsetWidth;
+    host.classList.add("tap");
+    host.addEventListener("animationend", () => host.classList.remove("tap"), { once: true });
+  }
+  const row = event.target.closest("tr[data-task]");
+  if (row && !event.target.closest("input, select, button, label")) {
+    row.classList.remove("hit");
+    void row.offsetWidth;
+    row.classList.add("hit");
+  }
+}
+
 function bind() {
+  document.addEventListener("pointerdown", pulso);
+
   $("#weeks").addEventListener("click", async (event) => {
     const button = event.target.closest("[data-week]");
     if (!button) return;
